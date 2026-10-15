@@ -1,0 +1,33 @@
+# Lancer le worker (sur ton ordi ou sur un VPS) :
+#   cp .env.example .env   # puis remplir les valeurs
+#   docker compose up -d --build
+#   docker compose logs -f
+#
+# Plus de débit : docker compose up -d --scale worker=2
+# Mettre à jour yt-dlp (quand Instagram change) : docker compose build --pull --no-cache && docker compose up -d
+
+services:
+  worker:
+    build: .
+    env_file: .env
+    restart: unless-stopped
+    # Laisse le temps de finir le reel en cours avant l'arrêt
+    stop_grace_period: 3m
+    volumes:
+      - whisper-models:/models
+      # Optionnel : cookies Instagram (voir docs/SETUP.md)
+      # - ./cookies.txt:/run/secrets/cookies.txt:ro
+    read_only: true
+    tmpfs:
+      - /tmp:size=1g
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 3g
+
+volumes:
+  whisper-models:
