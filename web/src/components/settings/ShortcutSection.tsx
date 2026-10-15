@@ -10,6 +10,15 @@ import type { IngestToken } from "@/lib/types";
  * Jetons du Raccourci iOS : un par appareil, révocables.
  * Le jeton en clair n'est affiché qu'une fois, juste après sa création.
  */
+async function fetchTokens(supabase: ReturnType<typeof getSupabase>): Promise<IngestToken[]> {
+  const { data } = await supabase
+    .from("ingest_tokens")
+    .select("id, name, token_prefix, created_at, last_used_at, revoked_at")
+    .is("revoked_at", null)
+    .order("created_at", { ascending: false });
+  return (data ?? []) as IngestToken[];
+}
+
 export function ShortcutSection({ endpoint }: { endpoint: string }) {
   const supabase = getSupabase();
   const [tokens, setTokens] = useState<IngestToken[]>([]);
@@ -17,18 +26,19 @@ export function ShortcutSection({ endpoint }: { endpoint: string }) {
   const [copied, setCopied] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    const { data } = await supabase
-      .from("ingest_tokens")
-      .select("id, name, token_prefix, created_at, last_used_at, revoked_at")
-      .is("revoked_at", null)
-      .order("created_at", { ascending: false });
-    setTokens((data ?? []) as IngestToken[]);
+  const load = useCallback(() => {
+    void fetchTokens(supabase).then(setTokens);
   }, [supabase]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    let cancelled = false;
+    void fetchTokens(supabase).then((tokens) => {
+      if (!cancelled) setTokens(tokens);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase]);
 
   async function create() {
     setError(null);
@@ -38,13 +48,13 @@ export function ShortcutSection({ endpoint }: { endpoint: string }) {
       return;
     }
     setFresh((data as { token: string }).token);
-    void load();
+    load();
   }
 
   async function revoke(id: string) {
     if (!window.confirm("Révoquer ce jeton ? Le Raccourci qui l'utilise cessera de fonctionner.")) return;
     await supabase.rpc("revoke_ingest_token", { p_id: id });
-    void load();
+    load();
   }
 
   async function copy(label: string, value: string) {

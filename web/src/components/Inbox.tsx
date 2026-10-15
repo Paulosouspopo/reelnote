@@ -20,6 +20,15 @@ const EMPTY_STATES: Record<UserStatus, { emoji: string; text: string }> = {
   archived: { emoji: "🗄️", text: "Aucune fiche archivée." },
 };
 
+async function fetchCounts(supabase: ReturnType<typeof getSupabase>): Promise<Partial<Record<UserStatus, number>>> {
+  const results = await Promise.all(
+    (["inbox", "todo"] as const).map((status) =>
+      supabase.from("reels").select("id", { count: "exact", head: true }).eq("user_status", status),
+    ),
+  );
+  return { inbox: results[0]?.count ?? 0, todo: results[1]?.count ?? 0 };
+}
+
 export function Inbox({ userId }: { userId: string }) {
   const supabase = getSupabase();
   const [tab, setTab] = useState<UserStatus>("inbox");
@@ -48,13 +57,8 @@ export function Inbox({ userId }: { userId: string }) {
     [supabase, tab, kind],
   );
 
-  const refreshCounts = useCallback(async () => {
-    const results = await Promise.all(
-      (["inbox", "todo"] as const).map((status) =>
-        supabase.from("reels").select("id", { count: "exact", head: true }).eq("user_status", status),
-      ),
-    );
-    setCounts({ inbox: results[0]?.count ?? 0, todo: results[1]?.count ?? 0 });
+  const refreshCounts = useCallback(() => {
+    void fetchCounts(supabase).then(setCounts);
   }, [supabase]);
 
   useEffect(() => {
@@ -85,8 +89,14 @@ export function Inbox({ userId }: { userId: string }) {
   }, [supabase, fetchPage, searching, query, kind]);
 
   useEffect(() => {
-    void refreshCounts();
-  }, [refreshCounts]);
+    let cancelled = false;
+    void fetchCounts(supabase).then((counts) => {
+      if (!cancelled) setCounts(counts);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase]);
 
   async function loadMore() {
     const last = reels.at(-1);
@@ -119,7 +129,7 @@ export function Inbox({ userId }: { userId: string }) {
               return [row, ...current];
             });
           }
-          void refreshCounts();
+          refreshCounts();
         },
       )
       .subscribe();

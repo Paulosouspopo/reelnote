@@ -7,8 +7,17 @@ import { getSupabase } from "./supabase/client";
 const TTL_SECONDS = 60 * 60;
 const cache = new Map<string, { url: string; expires: number }>();
 
-function isFresh(path: string, now: number) {
-  return (cache.get(path)?.expires ?? 0) > now + 60_000;
+/** Chemins sans URL signée encore valable au moins une minute. */
+function staleOf(paths: string[]): string[] {
+  const limit = Date.now() + 60_000;
+  return paths.filter((p) => (cache.get(p)?.expires ?? 0) <= limit);
+}
+
+function remember(items: { path: string | null; signedUrl: string | null }[]) {
+  const expires = Date.now() + TTL_SECONDS * 1000;
+  for (const item of items) {
+    if (item.path && item.signedUrl) cache.set(item.path, { url: item.signedUrl, expires });
+  }
 }
 
 /**
@@ -22,19 +31,14 @@ export function useThumbnails(paths: (string | null)[]): Record<string, string> 
 
   useEffect(() => {
     let cancelled = false;
-    const now = Date.now();
-    const missing = (key ? key.split("|") : []).filter((p) => !isFresh(p, now));
+    const missing = staleOf(key ? key.split("|") : []);
     if (missing.length === 0) return;
 
     getSupabase()
       .storage.from("thumbnails")
       .createSignedUrls(missing, TTL_SECONDS)
       .then(({ data }) => {
-        for (const item of data ?? []) {
-          if (item.path && item.signedUrl) {
-            cache.set(item.path, { url: item.signedUrl, expires: now + TTL_SECONDS * 1000 });
-          }
-        }
+        remember(data ?? []);
         if (!cancelled) refresh();
       });
 

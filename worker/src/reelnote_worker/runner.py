@@ -53,7 +53,7 @@ class Runner:
         self._heartbeat_file = heartbeat_file
         self._sleep = sleep
         self._stopping = False
-        self._last_maintenance = 0.0
+        self._last_maintenance: float | None = None  # None : maintenance dès le démarrage
 
     # -- cycle de vie -----------------------------------------------------------
 
@@ -123,7 +123,7 @@ class Runner:
 
     def _maybe_maintenance(self) -> None:
         now = time.monotonic()
-        if now - self._last_maintenance < self._maintenance_interval_s:
+        if self._last_maintenance is not None and now - self._last_maintenance < self._maintenance_interval_s:
             return
         self._last_maintenance = now
 
