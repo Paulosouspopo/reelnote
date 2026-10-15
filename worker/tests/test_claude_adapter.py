@@ -75,7 +75,7 @@ def analysis_input(tmp_path) -> AnalysisInput:
 
 def make_analyzer(responses: list[Response]) -> tuple[ClaudeAnalyzer, FakeClient]:
     client = FakeClient(responses)
-    return ClaudeAnalyzer(api_key="unused", model="claude-haiku-5-5", max_tokens=2000, client=client), client
+    return ClaudeAnalyzer(api_key="unused", model="claude-haiku-4-5", max_tokens=2000, client=client), client
 
 
 def test_forces_the_tool_and_parses_the_card(tmp_path) -> None:

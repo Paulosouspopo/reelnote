@@ -82,9 +82,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-      # Premier passage : pas encore de package-lock.json (il sera commité ensuite)
-      - name: Dépendances
-        run: if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test

@@ -22,7 +22,7 @@ Les intitulés des tableaux de bord (Supabase, Vercel…) évoluent parfois : si
 
 1. Crée un dépôt **privé** `reelnote` sur GitHub.
 2. Envoie-y ce code (`git init`, `git add .`, `git commit`, `git push`).
-3. Onglet **Actions** : la CI se lance. Le job « Web app » génère au premier passage les dépendances ; commite ensuite `web/package-lock.json` pour figer les versions (`cd web && npm install`).
+3. Onglet **Actions** : la CI se lance (les versions des dépendances web sont figées par `web/package-lock.json`).
 
 ## 2. Base de données (Supabase)
 

@@ -23,7 +23,7 @@ class Settings(BaseModel):
     anthropic_api_key: SecretStr
 
     # Analyse
-    analysis_model: str = "claude-haiku-5-5"
+    analysis_model: str = "claude-haiku-4-5"
     analysis_max_tokens: int = Field(default=2500, ge=500, le=8000)
     keyframes: int = Field(default=5, ge=0, le=10)
 
