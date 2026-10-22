@@ -545,6 +545,18 @@ textarea.field {
   color: var(--ink);
 }
 
+/* Poignée : indique qu'on peut glisser vers le bas pour fermer */
+.sheet::before {
+  content: "";
+  display: block;
+  width: 36px;
+  height: 5px;
+  margin: -8px auto 12px;
+  border-radius: 3px;
+  background: var(--ink);
+  opacity: 0.2;
+}
+
 .sheet::backdrop {
   background: rgb(0 0 0 / 0.35);
 }

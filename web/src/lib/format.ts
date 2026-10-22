@@ -19,6 +19,14 @@ export function timeAgo(iso: string, now: Date = new Date()): string {
   return "à l'instant";
 }
 
+/** Au-delà de quelques minutes en file, le worker est sûrement arrêté (PC éteint). */
+export function waitingMessage(createdAt: string, now: Date = new Date()): string {
+  const minutes = (now.getTime() - new Date(createdAt).getTime()) / 60_000;
+  return minutes < 5
+    ? "En attente du traitement…"
+    : "Toujours en attente : l'ordinateur qui crée les fiches est sans doute éteint. Elle sera prête à son réveil.";
+}
+
 export function formatDate(iso: string): string {
   return dateFormat.format(new Date(iso));
 }

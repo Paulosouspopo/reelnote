@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { KINDS } from "@/lib/card";
-import { timeAgo } from "@/lib/format";
+import { timeAgo, waitingMessage } from "@/lib/format";
 import { STAGE_LABELS, STAGE_ORDER, type ReelListItem } from "@/lib/types";
 
 export function ReelRow({ reel, thumbnailUrl }: { reel: ReelListItem; thumbnailUrl?: string }) {
@@ -31,7 +31,7 @@ export function ReelRow({ reel, thumbnailUrl }: { reel: ReelListItem; thumbnailU
               <span className="reel-row__title">Fiche en préparation</span>
               <span className="reel-row__tldr">
                 {reel.status === "queued"
-                  ? (reel.error_message ?? "En attente du traitement")
+                  ? (reel.error_message ?? waitingMessage(reel.created_at))
                   : `${reel.stage ? STAGE_LABELS[reel.stage] : "Démarrage"}…`}
               </span>
               <Progress stage={reel.status === "processing" ? reel.stage : null} />

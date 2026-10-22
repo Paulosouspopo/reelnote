@@ -5,10 +5,12 @@ import { useRef, useState, type FormEvent } from "react";
 import { extractReelLinks, toRpcItems } from "@/lib/links";
 import { getSupabase } from "@/lib/supabase/client";
 import type { IngestResultItem } from "@/lib/types";
+import { useSheet } from "@/lib/useSheet";
 
 /** Ajout manuel d'un ou plusieurs liens (utile sans le Raccourci, ou pour importer d'anciens reels). */
 export function AddLinkSheet() {
   const dialog = useRef<HTMLDialogElement>(null);
+  useSheet(dialog);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);

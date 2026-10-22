@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { KINDS } from "@/lib/card";
-import { formatDuration, timeAgo } from "@/lib/format";
+import { formatDuration, timeAgo, waitingMessage } from "@/lib/format";
 import { getSupabase } from "@/lib/supabase/client";
 import { STAGE_LABELS, USER_STATUS_LABELS, type Reel, type UserStatus } from "@/lib/types";
+import { useSheet } from "@/lib/useSheet";
 
 import { KindSection } from "./KindSection";
 
@@ -25,6 +26,7 @@ export function ReelDetail({ reel: initial, thumbnailUrl }: { reel: Reel; thumbn
   const [note, setNote] = useState(initial.note ?? "");
   const [saveError, setSaveError] = useState<string | null>(null);
   const menu = useRef<HTMLDialogElement>(null);
+  useSheet(menu);
   const card = reel.card;
   const kind = reel.kind ?? undefined;
   const ready = reel.status === "ready" && card !== null;
@@ -286,7 +288,7 @@ function Pending({ reel, onRetry }: { reel: Reel; onRetry: () => void }) {
       <p>
         {reel.status === "processing" && reel.stage
           ? `${STAGE_LABELS[reel.stage]}…`
-          : (reel.error_message ?? "En attente du traitement…")}
+          : (reel.error_message ?? waitingMessage(reel.created_at))}
       </p>
       <p className="small">Tu peux fermer l&apos;app : une notification te préviendra.</p>
     </div>
