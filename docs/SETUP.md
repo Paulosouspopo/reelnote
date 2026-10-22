@@ -34,13 +34,23 @@ Les intitulés des tableaux de bord (Supabase, Vercel…) évoluent parfois : si
    2. `supabase/migrations/20261015000200_storage.sql`
 
    > Pour les migrations suivantes, la CLI est plus pratique : `npx supabase login`, `npx supabase link --project-ref <id>`, puis `npx supabase db push`.
-3. **Connexion par code** : *Authentication → Emails → Magic Link* : remplace le contenu du modèle par :
+3. **Envoi des e-mails (SMTP)** : Supabase n'autorise la modification des modèles d'e-mail qu'avec un SMTP personnalisé. *Authentication → Emails → SMTP Settings* → active **Enable custom SMTP**. Le plus simple avec Gmail (validation en deux étapes requise) : crée un **mot de passe d'application** sur myaccount.google.com, puis :
+
+   | Champ | Valeur |
+   |---|---|
+   | Sender email / Username | ton adresse Gmail |
+   | Sender name | `Reelnote` |
+   | Host / Port | `smtp.gmail.com` / `465` |
+   | Password | le mot de passe d'application (sans espaces) |
+
+   Alternative sans Gmail : Brevo (gratuit, `smtp-relay.brevo.com`, port `587`). Pense aussi à relever la limite d'e-mails dans *Authentication → Rate Limits*.
+4. **Connexion par code** : *Authentication → Emails → Templates → Magic Link* : remplace le contenu du modèle par :
    ```html
    <h2>Ton code Reelnote</h2>
    <p>Saisis ce code dans l'app : <strong>{{ .Token }}</strong></p>
    <p>Il expire dans une heure. Si tu n'as rien demandé, ignore cet e-mail.</p>
    ```
-4. **Récupère** :
+5. **Récupère** :
    - *Project Settings → API Keys* : l'URL du projet, la clé **publishable** (`sb_publishable_…`) et une clé **secret** (`sb_secret_…`) ;
    - bouton **Connect** en haut du projet → **Session pooler** : la chaîne de connexion (port 5432). C'est elle qu'utilise le worker : compatible IPv4 et avec les notifications temps réel de la file (contrairement au *Transaction pooler*, port 6543).
 
