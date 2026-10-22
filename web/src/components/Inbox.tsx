@@ -38,6 +38,8 @@ export function Inbox({ userId }: { userId: string }) {
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [counts, setCounts] = useState<Partial<Record<UserStatus, number>>>({});
+  // Incrémenté au retour dans l'app : iOS fige la PWA en arrière-plan et coupe le temps réel
+  const [resumed, setResumed] = useState(0);
   const searching = query.trim().length >= 2;
 
   // --- chargement -------------------------------------------------------------
@@ -86,7 +88,7 @@ export function Inbox({ userId }: { userId: string }) {
       cancelled = true;
       clearTimeout(handle);
     };
-  }, [supabase, fetchPage, searching, query, kind]);
+  }, [supabase, fetchPage, searching, query, kind, resumed]);
 
   useEffect(() => {
     let cancelled = false;
@@ -96,7 +98,15 @@ export function Inbox({ userId }: { userId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [supabase]);
+  }, [supabase, resumed]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") setResumed((n) => n + 1);
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, []);
 
   async function loadMore() {
     const last = reels.at(-1);
@@ -136,7 +146,7 @@ export function Inbox({ userId }: { userId: string }) {
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [supabase, userId, tab, kind, searching, refreshCounts]);
+  }, [supabase, userId, tab, kind, searching, refreshCounts, resumed]);
 
   const thumbnails = useThumbnails(useMemo(() => reels.map((r) => r.thumbnail_path), [reels]));
   const empty = EMPTY_STATES[tab];
